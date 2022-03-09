@@ -1,0 +1,113 @@
+# Config definition
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 1.Data General Setting. Can be replaced in respective sets
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+DATA:
+ DATASETS:
+  NAMES: ('cameo_half_year-msa-1023-0-profile_pd')
+  ROOT_DIR: ('/workspace/LowContact-upload/dataset/CAMEO-L/')
+
+ DATALOADER:
+  NUM_WORKERS: 0
+  SAMPLER: 'random'
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 2.Model General Setting. Can be replaced in respective sets Structure Information
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+MODEL:
+ DEVICE: "cuda"
+ DEVICE_ID: (4,)
+ BACKBONE_NAME: "msa_transformer"              # "esm1b" "msa_transformer"
+ # CONTACT_PREDICTOR_NAME: "LR" #"SelfAttention-attention"  # "MultiLayerTiedRowAttention" "PairwiseConcat" "SelfAttention"
+ CONTACT_PREDICTOR_NAME: "ResNetWithProfileNet-first"  # "MultiLayerTiedRowAttention" "PairwiseConcat" "SelfAttention"
+ PRETRAINED: 1
+ PRETRAINED_TYPE: "Overall"
+ PRETRAIN_PATH: './work_space/reproduce-unfixed/msa_transformer_model_20.pth'
+ BIAS_FREE: 0
+ BACKBONE_FROZEN: 0
+ WITH_DISTILLATION: 1
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 3.LOSS General Setting. Can be replaced in respective sets Structure Information
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+LOSS:
+ TYPE: 'contact_prediction_loss contact_distillation_loss'
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 4.Solver
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+SOLVER:
+ MAX_EPOCHS: 30
+ EVAL_PERIOD: 1
+ CHECKPOINT_PERIOD: 2
+ LOG_PERIOD: 400 #600
+ OUTPUT_DIR: "work_space/student-esm1b-distillationloss"
+
+ # OPTIMIZER
+ OPTIMIZER:
+  NAME: "AdamW"                         #"SGD", "Adam"
+  MOMENTUM: 0.9
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.
+  ACCUMULATION_STEP: 1 #16
+
+ # SCHEDULER
+ SCHEDULER:
+  NAME: "WarmupCosineLR"   #"WarmupMultiStepLR"  #"WarmupCosineLR"    #"WarmupMultiStepLR" #"WarmupCosineLR"           # "WarmupMultiStepLR", "WarmupCosineLR"
+  STEP_UNIT: "epoch"               # "epoch", "iteration"
+  STEP_FREQUENCY: "iteration"      # "epoch", "iteration"
+  BASE_LR: 0.0001
+  BIAS_LR_FACTOR: 1
+  START_FROM_SCRATCH: 1
+  # WARM UP
+  WARMUP_METHOD: "linear"
+  WARMUP_FACTOR: 0.01
+  WARMUP_STEPS: 2.0
+  # SPECIFIC
+  GAMMA: 0.1
+  MILESTONES: [10, 15, 20]
+  MAIN_STEPS: 30
+
+ # APEX
+ APEX:
+  OPT_LEVEL: "O2" #"none" #"none"     # "O0" "O1" "O2" "O3"
+
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Specific Setting - Train Configuration
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+TRAIN:
+ DATALOADER:
+  CATEGORIES_PER_BATCH: 1
+  INSTANCES_PER_CATEGORY_IN_BATCH: 1
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Specific Setting - Val Configuration
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+VAL:
+ DATALOADER:
+  CATEGORIES_PER_BATCH: 1
+  INSTANCES_PER_CATEGORY_IN_BATCH: 1
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Specific Setting - Test Configuration
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+TEST:
+ WEIGHT: "./pretrained/msa_transformer_model.pth"
+ DATALOADER:
+  CATEGORIES_PER_BATCH: 1
+  INSTANCES_PER_CATEGORY_IN_BATCH: 1
